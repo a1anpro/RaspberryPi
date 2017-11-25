@@ -1,0 +1,6 @@
+#记录过程
+目标：用google object detection api 来检测目标，用Opencv的跟踪算法来跟踪目标物
+通过检测目标物周围的环境来分析发出警报，同时小车是跟着目标物移动的。
+
+当前：google object detection api是用的ssd mobilenet，检测速度和kcf的跟踪速度不匹配
+尝试更新一些优化。
