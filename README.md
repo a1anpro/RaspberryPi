@@ -5,15 +5,15 @@ object detection and tracking the person we want, warning him/her duly
 Often use: Windows10 + Python3.6 + OpenCV3.3.0 + Tensorflow1.2.1
 Occasionally use: Ubuntu14.04 + ...(same as above)
 
-##File description:
+## File description:
 ---
-###Fisrt try:
+### Fisrt try:
 object_detection.py - this is the google object detection api demo
 opencv_Track.py - opencv contrib track api demo(my environment:opencv3.3.1 python3.6. [opencv and contrib resource website](https://www.lfd.uci.edu/~gohlke/pythonlibs/) ps:you can download [linux-edition](https://pypi.python.org/pypi/opencv-python))
 track_detection.py - i integrated them in this file and the performance is terrible
 
 ---
-###Second try:[didn't finish]
+### Second try:[didn't finish]
 optimize:use multithreading
 detection_func.py - package the google object detection api to a funtion
 
@@ -24,7 +24,7 @@ I quit the idea i raised, it's too slow to run on my laptop.So, i read many many
 
 **Single Shot Detectors(SSDs)**:SSDs was developed by Google, are a balance between Faster R-CNNs(hard to understand, hard to implement and challenge to train) an YOLO(leave much accuracy to be desired). The algorithm is more straightforward (and I would argue better explained in the original seminal paper) than Faster R-CNNs.
 
-###Third try:[referenced from *www.pyimagesearch.com*, and thanks Adrian Rosebrock's blog for help]
+### Third try:[referenced from *www.pyimagesearch.com*, and thanks Adrian Rosebrock's blog for help]
 models[dir]:
 	MobileNetSSD_deploy.caffemodel - model we use
 	MobileNetSSD_deploy.prototxt.txt - prototxt, configurations
