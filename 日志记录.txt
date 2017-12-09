@@ -8,3 +8,5 @@
 
 #2思路：将kcf和detection封装，采用多线程的方式将速度较快的kcf track的执行时间分给detection的时间，这样可以在逻辑上
 将顺序执行改成同步执行
+
+#3思路：用ssd和mobilenets的构架来实现，OpenCV有已经实现了的dnn的目标检测，速度够快，准确度也还可以。

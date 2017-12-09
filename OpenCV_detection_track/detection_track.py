@@ -6,46 +6,55 @@ import time
 from utils.video.fps import FPS
 import utils.process.axe as tools
 import datetime
+import sys
 
 # 配置信息
 PROTOTXT_PATH = "models\MobileNetSSD_deploy.prototxt.txt"
 MODEL_PATH = "models\MobileNetSSD_deploy.caffemodel"
-DEFAULT_CONFIDENCE = 0.3
+DEFAULT_CONFIDENCE = 0.5
 CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
                "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
                "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
                "sofa", "train", "tvmonitor"]
 COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
-
-vs = VideoStream(src="videos\trackCar.mp4").start()
-frame = vs.get_firstFrame()
-
 # 加载模型
 print("[初始化] 加载模型...")
 net = cv2.dnn.readNetFromCaffe(PROTOTXT_PATH, MODEL_PATH)
 
-(h, w) = frame.shape[:2]
-blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
 
-print("[计算] 目标检测...")
-net.setInput(blob)
-detections = net.forward()
+vs = VideoStream().start()
 
+found = False #初始化 未发现目标
+count = 1
 bbox = None
-for i in np.arange(0, detections.shape[2]):
-    confidence = detections[0, 0, i, 2]
-    if confidence > DEFAULT_CONFIDENCE:
-        idx = int(detections[0, 0, i, 1])
-        box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-        (startX, startY, endX, endY) = box.astype("int")
-        if CLASSES[idx] == 'person':
-            bbox = (startX, startY, endX, endY)
-            print('[调试] 目标物的坐标:', startX, startY, endX, endY)
-            break #找到person就可以退出了
+
+while not found:
+    frame = vs.read()
+    (h, w) = frame.shape[:2]
+    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
+    print("[计算] 目标检测:", count)
+    count += 1
+    net.setInput(blob)
+    detections = net.forward()
+
+    for i in np.arange(0, detections.shape[2]):
+        confidence = detections[0, 0, i, 2]
+        if confidence > 0.95:
+            idx = int(detections[0, 0, i, 1])
+            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+            (startX, startY, endX, endY) = box.astype("int")
+            if CLASSES[idx] == 'person':
+                bbox = (startX, startY, endX, endY)
+                found = True
+                print('[调试] 目标物的坐标:', bbox)
+                break  # 找到了就可以结束循环了.我们只需要坐标
+
+time.sleep(2.0)
 
 # 创建KCF跟踪对象
 tracker = cv2.TrackerKCF_create()
-# 初始化跟踪的第一帧，bbox是检测出来的第一个person的位置
+# 初始化跟踪的第一帧，bbox是检测出来的第一个目标物的位置
+frame = vs.read()
 ok = tracker.init(frame, bbox)
 
 while True:
@@ -71,6 +80,7 @@ while True:
     # 显示FPS到frame
     cv2.putText(frame, "FPS : " + str(int(fps)), (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 170, 50), 2)
 
+    print("[调试] frame shape:", frame.shape)
     frame = tools.resize(frame, height=500)
     (h, w) = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
@@ -109,5 +119,3 @@ while True:
 
 cv2.destroyAllWindows()
 vs.stop()
-# 释放视频流资源
-vs.release()

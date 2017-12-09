@@ -2,67 +2,72 @@ import cv2
 import sys
 from utils.videostream import VideoStream
 import numpy as np
-
+import time
 PROTOTXT_PATH = "models\MobileNetSSD_deploy.prototxt.txt"
 MODEL_PATH = "models\MobileNetSSD_deploy.caffemodel"
-DEFAULT_CONFIDENCE = 0.3
+DEFAULT_CONFIDENCE = 0.95
 
 if __name__ == '__main__':
-    # 创建线程的同时
-    vs = VideoStream(src=0).start()
-    frame = vs.get_firstFrame()
-
     CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
                "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
                "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
                "sofa", "train", "tvmonitor"]
     COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
-
     # 加载模型
     print("[INFO] loading model...")
     net = cv2.dnn.readNetFromCaffe(PROTOTXT_PATH, MODEL_PATH)
 
-    (h, w) = frame.shape[:2]
-    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
+    found = False #是否找到目标物
 
-    print("[INFO] computing object detections...")
-    net.setInput(blob)
-    detections = net.forward()
 
     bbox = None
-    for i in np.arange(0, detections.shape[2]):
-        confidence = detections[0, 0, i, 2]
+    count = 1
+    video = cv2.VideoCapture("Car.mp4")
 
-        if confidence > DEFAULT_CONFIDENCE:
-            # extract the index of the class label from the `detections`,
-            # then compute the (x, y)-coordinates of the bounding box for
-            # the object
-            idx = int(detections[0, 0, i, 1])
-            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-            (startX, startY, endX, endY) = box.astype("int")
+    while not found:
+        ok, frame = video.read()
+        if not ok:
+            print("视频读取失败")
+            sys.exit(-1)
 
-            if CLASSES[idx] == 'person':
-                bbox = (startX, startY, endX, endY)
-                print('[DEBUG]the person coordinate:', startX, startY, endX, endY)
+        # cv2.imshow("car", frame)
+        print("frame:", count)
+        count += 1
 
-            # display the prediction
-            label = "{}: {:.2f}%".format(CLASSES[idx], confidence * 100)
-            print("[INFO] {}".format(label))
-            cv2.rectangle(frame, (startX, startY), (endX, endY),
-                          COLORS[idx], 2)
-            y = startY - 15 if startY - 15 > 15 else startY + 15
-            cv2.putText(frame, label, (startX, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
-    # 输出检测到的各物体位置
-    cv2.imshow("Output", frame)
-    cv2.waitKey(0)
-    # 关闭窗口
-    cv2.destroyAllWindows()
+        (h, w) = frame.shape[:2]
+        blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
+
+        print("[INFO] computing object detections...")
+        net.setInput(blob)
+        detections = net.forward()
+        for i in np.arange(0, detections.shape[2]):
+            confidence = detections[0, 0, i, 2]
+            if confidence > DEFAULT_CONFIDENCE:
+                idx = int(detections[0, 0, i, 1])
+                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                (startX, startY, endX, endY) = box.astype("int")
+
+                if CLASSES[idx] == 'car':
+                    label = "{}: {:.2f}%".format("car",
+                                                 confidence * 100)
+                    cv2.rectangle(frame, (startX, startY), (endX, endY),
+                                  (255,0,0), 2)
+                    y = startY - 15 if startY - 15 > 15 else startY + 15
+                    cv2.putText(frame, label, (startX, y),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
+                    bbox = (startX, startY, endX, endY)
+                    print('[DEBUG]the car coordinate:', startX, startY, endX, endY)
+                    print('[DEBUG] confidence: ', confidence)
+                    found = True
+                    break# 找到了就可以结束循环了.我们只需要坐标
+
+    time.sleep(3.0)
 
     ##################################
-    video = cv2.VideoCapture(0)
+
+    print('[DEBUG] 进入跟踪...')
     _, frame = video.read()
-    bbox = cv2.selectROI(frame, False)
+    # bbox = cv2.selectROI(frame, False)
     # 创建KCF跟踪对象
     tracker = cv2.TrackerKCF_create()
     # 初始化跟踪的第一帧，bbox是检测出来的第一个person的位置
@@ -95,8 +100,10 @@ if __name__ == '__main__':
         cv2.imshow("Tracking", frame)
 
         if cv2.waitKey(1) & 0xff == ord('q'):
-            vs.stop()
+            # vs.stop()
             break
 
+    video.release()
+    cv2.destroyAllWindows()
     # 释放视频流资源
-    vs.release()
+    # vs.release()
