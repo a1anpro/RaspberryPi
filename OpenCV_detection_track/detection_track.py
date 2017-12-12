@@ -21,7 +21,6 @@ COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 print("[初始化] 加载模型...")
 net = cv2.dnn.readNetFromCaffe(PROTOTXT_PATH, MODEL_PATH)
 
-
 vs = VideoStream().start()
 
 found = False #初始化 未发现目标
@@ -44,20 +43,22 @@ while not found:
             box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
             if CLASSES[idx] == 'person':
-                bbox = (startX, startY, endX, endY)
+                bbox = (startX, startY, endX -startX, endY - startY)
                 found = True
                 print('[调试] 目标物的坐标:', bbox)
                 break  # 找到了就可以结束循环了.我们只需要坐标
 
-time.sleep(2.0)
+# time.sleep(2.0)
 
 # 创建KCF跟踪对象
 tracker = cv2.TrackerKCF_create()
 # 初始化跟踪的第一帧，bbox是检测出来的第一个目标物的位置
 frame = vs.read()
+
 ok = tracker.init(frame, bbox)
 
 while True:
+    start_time = time.time()
     frame = vs.read()
     # 开始计时器
     timer = cv2.getTickCount()
@@ -112,6 +113,8 @@ while True:
             # cv2.putText(frame, ts, (40, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 255, 255), 1)
 
     cv2.imshow("Tracking", frame)
+
+    print('spent:', time.time()-start_time)
 
     if cv2.waitKey(1) & 0xff == ord('q'):
         vs.stop()
