@@ -47,8 +47,8 @@ def intersectedArea(rec1, rec2):
     rightUpX = min(r1[2], r2[2])
     rightUpY = max(r1[3], r2[3])
 
-    print("左下角坐标：", (leftDownX,leftDownY))
-    print("右上角坐标：", (rightUpX, rightUpY))
+    # print("左下角坐标：", (leftDownX,leftDownY))
+    # print("右上角坐标：", (rightUpX, rightUpY))
 
     retarea = (rightUpX - leftDownX) * (rightUpY - leftDownY)
     if retarea > 0:
@@ -60,6 +60,17 @@ def intersectedArea(rec1, rec2):
 # 计算矩形面积，左上和右下坐标
 def recArea(rec):
     return (rec[3]-rec[1])*(rec[2]-rec[0])
+
+# 相交面积与相并面积比值
+def intersectedRate(rec1, rec2):
+    rate = 0.0
+    if isIntersected(rec1, rec2):
+        print("矩形相交")
+        iArea = intersectedArea(rec1, rec2)
+        totalArea = recArea(rec1) + recArea(rec2) - iArea
+        rate = iArea / totalArea
+        print("置信率:", rate)
+    return rate
 
 # 如果相交且相交区域比例较大则说明是同一个检测对象
 def isSameObject(rec1, rec2):
@@ -77,4 +88,21 @@ def isSameObject(rec1, rec2):
 
     return issame
 
+# 计算中心点，来保证矩形位置偏移度很小
+def calcCenterPoint(rec):
+    return ((rec[0]+rec[2])/2, (rec[1]+rec[3])/2)
+
+# 计算两个矩形中心点距离
+def calcCenterLength(rec1, rec2):
+    p1 = calcCenterPoint(rec1)
+    p2 = calcCenterPoint(rec2)
+
+    return math.sqrt(math.pow(p1[0]-p2[0], 2) + math.pow(p1[1]-p2[1], 2))
+
+# 判断是否更新
+def shouldUpdate(normal_rec, maxCoincidentBox, minDriftageBox):
+    isUpdate = False
+    if calcCenterLength(normal_rec, maxCoincidentBox) <= calcCenterLength(normal_rec, minDriftageBox):
+        isUpdate = True
+    return isUpdate
 

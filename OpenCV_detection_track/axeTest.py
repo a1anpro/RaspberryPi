@@ -3,7 +3,7 @@ import cv2
 import time
 pic = cv2.imread("C:/Users/women/Pictures/wp-1493431453196.jpeg")
 
-choice = 2
+choice = 1
 if choice==1:
     rec2 = (80, 80, 200, 200)
     rec1 = (50, 50, 250, 250)
@@ -25,8 +25,10 @@ print("相交面积：", axe.intersectedArea(rec1, rec2))
 cv2.rectangle(pic, p11,p12, (60, 20, 255), 2, 2)
 cv2.rectangle(pic, p21,p22, (200,200,200), 2, 2)
 
-if axe.isSameObject(rec1, rec2):
-    print("同一个矩形")
+print("置信率:", axe.intersectedRate(rec1, rec2))
+
+# if axe.isSameObject(rec1, rec2):
+#     print("同一个矩形")
 
 cv2.imshow("pic", pic)
 cv2.waitKey(1)

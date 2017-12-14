@@ -55,7 +55,7 @@ if __name__ == '__main__':
                     y = startY - 15 if startY - 15 > 15 else startY + 15
                     cv2.putText(frame, label, (startX, y),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
-                    bbox = (startX, startY, endX, endY)
+                    bbox = (startX, startY, endX-startX, endY-startY)
                     print('[DEBUG]the car coordinate:', startX, startY, endX, endY)
                     print('[DEBUG] confidence: ', confidence)
                     found = True
