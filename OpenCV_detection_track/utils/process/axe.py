@@ -65,25 +65,25 @@ def recArea(rec):
 def intersectedRate(rec1, rec2):
     rate = 0.0
     if isIntersected(rec1, rec2):
-        print("矩形相交")
+        # print("矩形相交")
         iArea = intersectedArea(rec1, rec2)
         totalArea = recArea(rec1) + recArea(rec2) - iArea
         rate = iArea / totalArea
-        print("置信率:", rate)
+        # print("置信率:", rate)
     return rate
 
 # 如果相交且相交区域比例较大则说明是同一个检测对象
 def isSameObject(rec1, rec2):
     issame = False
     if isIntersected(rec1, rec2):
-        print("矩形相交")
+        # print("矩形相交")
         iArea = intersectedArea(rec1, rec2)
 
         if isCoincident(rec1, rec2):
             rate = 1.0
         else:
             rate = iArea / recArea(rec2)
-        print("重合率：", rate)
+        # print("重合率：", rate)
         issame = rate > 0.9
 
     return issame

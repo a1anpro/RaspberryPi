@@ -7,16 +7,16 @@ import sys
 class WebcamStream:
     def __init__(self, src = 0):#默认是打开0号摄像头
         self.stream =  cv2.VideoCapture(src)
-        (self.grabbed, self.first_frame) = self.stream.read()#读取第一帧
+        print("[调试] 打开",src, "视频流")
+        (self.grabbed, self.frame) = self.stream.read()#读取第一帧
         if not self.grabbed:#如果第一帧没有读到说明视频流没有打开
             print("未读到第一帧")
-            sys.exit()#先这样处理，之后用异常来让用户选择
-
-        self.frame = self.first_frame#将第一帧给frame,也是为了创建frame这个成员变量
+            sys.exit(-1)#先这样处理，之后用异常来让用户选择
         self.stopped = False#是否暂停视频流
 
-    def get_firstFrame(self):#得到第一帧来处理，获取目标物
-        return self.first_frame
+    # 读取当前帧
+    def read(self):
+        return self.frame
 
     def start(self):
         # 把update函数运行的内容新建一个线程
@@ -29,13 +29,6 @@ class WebcamStream:
                 return
             (self.grabbed, self.frame) = self.stream.read()
 
-    def read(self):
-        return self.frame
-
     # 停止继续读视频流，但是资源并没有释放
     def stop(self):
         self.stopped = True
-
-    # 只有调用了这个释放资源的，才将视频流的资源释放
-    def release(self):
-        self.stream.release()
